@@ -1,0 +1,19 @@
+name: SnakeBlock
+version: ${project.version}
+main: net.kunmc.snakeblock.Main
+api-version: 1.15
+commands:
+  snake:
+    usage: "/snake help"
+    description: "snakeBlockPlugin by Propromp"
+    permission: snake.op
+    permission-message: "権限が足りません。"
+
+permissions:
+  snake.player:
+    default: true
+  snake.op:
+    default: op
+  snake.*:
+    snake.player: true
+    snake.op: true
