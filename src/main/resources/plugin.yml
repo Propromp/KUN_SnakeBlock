@@ -1,13 +1,13 @@
 name: SnakeBlock
-version: ${project.version}
-main: net.kunmc.snakeblock.Main
+version: @version@
+main: net.kunmc.lab.snakeblock.Main
 api-version: 1.15
+depend: [NoteBlockAPI]
 commands:
   snake:
     usage: "/snake help"
     description: "snakeBlockPlugin by Propromp"
     permission: snake.op
-    permission-message: "権限が足りません。"
 
 permissions:
   snake.player:
