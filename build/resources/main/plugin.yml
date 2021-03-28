@@ -1,0 +1,19 @@
+name: SnakeBlock
+version: rc2
+main: net.kunmc.lab.snakeblock.Main
+api-version: 1.15
+depend: [NoteBlockAPI]
+commands:
+  snake:
+    usage: "/snake help"
+    description: "snakeBlockPlugin by Propromp"
+    permission: snake.op
+
+permissions:
+  snake.player:
+    default: true
+  snake.op:
+    default: op
+  snake.*:
+    snake.player: true
+    snake.op: true

@@ -18,6 +18,7 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
      * スネークモードがスタートしているか
      */
     var isStarted = false
+    var isGameStarted = false
     lateinit var game : SnakeGame
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (args.isEmpty()) {
@@ -47,6 +48,10 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                 }
             }
             "stop" -> {
+                if(isGameStarted){
+                    sender.sendMessage("/snake stopgameで停止してください")
+                    return true
+                }
                 if (isStarted) {
                     for (sb in SnakeBlock.list) {
                         sb.stop()
@@ -103,9 +108,9 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                             }
                             SnakeBlock(it,size,height, flat).place()
                             sender.sendMessage("${it.name}にスネークブロックを設定しました")
-                            return true
                         }
                     }
+                    return true
                 }
                 Bukkit.getPlayer(args[1])?.let { player ->
                     val height = if(args.size==3){
