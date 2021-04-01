@@ -68,6 +68,7 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                     game=SnakeGame().also{it.start()}
                     sender.sendMessage("スネークゲームを開始します。/snake stopgameで停止できます。")
                     isStarted = true
+                    isGameStarted=true
                     return true
                 } else {
                     sender.sendMessage("スネークモードはすでに開始されています。")
@@ -78,6 +79,7 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                     game.stop()
                     sender.sendMessage("スネークゲームを終了しました。")
                     isStarted = false
+                    isGameStarted=false
                     return true
                 } else {
                     sender.sendMessage("スネークモードはすでに停止されています")
@@ -106,6 +108,7 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                             } else {
                                 8
                             }
+                            SnakeBlock.list.filter{it.player==sender}.forEach { it.delete() }
                             SnakeBlock(it,size,height, flat).place()
                             sender.sendMessage("${it.name}にスネークブロックを設定しました")
                         }
@@ -128,6 +131,7 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                     } else {
                         8
                     }
+                    SnakeBlock.list.filter{it.player==sender}.forEach { it.delete() }
                     SnakeBlock(player,size,height, flat).place()
                     sender.sendMessage("${player.name}にスネークブロックを設定しました")
                     return true

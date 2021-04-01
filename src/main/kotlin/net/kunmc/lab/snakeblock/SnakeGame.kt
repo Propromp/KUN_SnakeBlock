@@ -1,12 +1,16 @@
 package net.kunmc.lab.snakeblock
 
 import com.destroystokyo.paper.Title
+import net.kunmc.lab.snakeblock.commands.SnakeCommand
 import org.bukkit.*
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftItem
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Firework
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.player.PlayerEvent
+import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerPickupItemEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitRunnable
@@ -30,7 +34,7 @@ class SnakeGame : Listener {
                     player.teleport(sb.player.location)
                     player.sendTitle(Title("${ChatColor.GOLD}${sb.player.name}の勝利",
                         "生き延びた時間:${
-                            sm().mainScoreboard.getObjective("snakeTime")!!.getScore(sb.player)
+                            sm().mainScoreboard.getObjective("snakeTime")!!.getScore(sb.player).score
                         } ブロック数:${sb.size}"))
                 }
                 object : BukkitRunnable() {
@@ -44,12 +48,15 @@ class SnakeGame : Listener {
                             meta.addEffect(FireworkEffect.builder().withColor(Color.ORANGE).withFade(Color.RED).build())
                             meta.power = 1
                             fw.fireworkMeta = meta
+                            fw.customName="snake_victory"
                             object : BukkitRunnable() {
                                 override fun run() {
                                     fw.detonate()
                                 }
                             }.runTaskLater(Main.plugin, 10)
                         } else {
+                            Main.command.isGameStarted=false
+                            Main.command.isStarted=false
                             cancel()
                         }
                         tick+=5
@@ -76,6 +83,13 @@ class SnakeGame : Listener {
                     it.player.playSound(it.player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f)
                 }
             }
+        }
+    }
+
+    @EventHandler
+    fun onDamage(e: EntityDamageByEntityEvent) {
+        if(e.damager.customName=="snake_victory"){
+            e.isCancelled=true
         }
     }
 

@@ -16,6 +16,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitRunnable
@@ -55,6 +56,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     }
 
     fun place() {
+        Bukkit.getPluginManager().registerEvents(this, plugin)
         player.teleport(Location(player.world, player.location.x, (height + 1).toDouble(), player.location.z))
         val loc = player.location.subtract(0.0, 1.0, 0.0)
         for (i in 1..size) {
@@ -76,6 +78,10 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     }
 
     fun delete() {
+        PlayerInteractEvent.getHandlerList().unregister(this)
+        PlayerDeathEvent.getHandlerList().unregister(this)
+        PlayerDropItemEvent.getHandlerList().unregister(this)
+        PlayerMoveEvent.getHandlerList().unregister(this)
         blocks.forEach {
             it.type = Material.AIR
         }
@@ -87,7 +93,6 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     fun start() {
         sm().mainScoreboard.getObjective("snakeTime")!!.getScore(player).score=0
         player.sendMessage("コンパスを持ってクリックで進路を変更できます！")
-        Bukkit.getPluginManager().registerEvents(this, plugin)
         player.inventory.addItem(player.inventory.itemInMainHand)
         player.inventory.setItemInMainHand(ItemStack(Material.COMPASS))
         //BGM
@@ -106,7 +111,17 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
         rear.isVisible = false
         rear.setItem(EquipmentSlot.HEAD, ItemStack(Material.BEDROCK))
         br = object : BukkitRunnable() {
+            var useVec=false
             override fun run() {
+                //進行方向処理
+                if(useVec&&vector!=null){
+                    direction=vector!!
+                    useVec=false
+                    vector=null
+                }
+                if(vector!=null){
+                    useVec=true
+                }
                 val newBlock = blocks[blocks.lastIndex].location.add(direction).block
                 val oldBlock = blocks[0]
                 //Scoreboard処理
@@ -171,9 +186,6 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
             front.remove()
             rear.remove()
         }
-        PlayerInteractEvent.getHandlerList().unregister(this)
-        PlayerDeathEvent.getHandlerList().unregister(this)
-        PlayerDropItemEvent.getHandlerList().unregister(this)
     }
 
     private fun getPlayerDirection(): Vector {
@@ -192,24 +204,27 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
         }
         return direction
     }
-
+    private var vector:Vector?=null
     @EventHandler
     fun onClick(e: PlayerInteractEvent) {
-        if (e.player.inventory.itemInMainHand.type == Material.COMPASS) {
+        if (e.player.inventory.itemInMainHand.type == Material.COMPASS && e.player==player) {
+            vector=this.direction.clone()
             direction = getPlayerDirection()
-            player.sendTitle(Title("進行方向を${
+            player.sendActionBar("進行方向を${
                 when (direction) {
                     Vector(0, -1, 0) -> {
+                        vector=null
                         "下"
                     }
                     Vector(0, 1, 0) -> {
                         "上"
                     }
                     else -> {
+                        vector=null
                         player.facing.name
                     }
                 }
-            }に変更しました。", "", 0, 20, 10))
+            }に変更しました。")
             player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
         }
     }
@@ -226,6 +241,12 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     @EventHandler
     fun onDrop(e:PlayerDropItemEvent){
         if(e.itemDrop.itemStack.type==Material.COMPASS){
+            e.isCancelled=true
+        }
+    }
+    @EventHandler
+    fun onMove(e:PlayerMoveEvent){
+        if(!rsp.isPlaying&&e.player==player){
             e.isCancelled=true
         }
     }

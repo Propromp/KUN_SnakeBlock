@@ -12,12 +12,14 @@ class Main : JavaPlugin() {
     companion object {
         lateinit var plugin: JavaPlugin
         var hanken = true
+        lateinit var command: SnakeCommand
     }
     override fun onEnable() {
         logger.info("Hi")
         plugin = this
-        getCommand("snake")!!.setExecutor(SnakeCommand(this))
-        getCommand("snake")!!.tabCompleter=SnakeCommand(this)
+        command=SnakeCommand(this)
+        getCommand("snake")!!.setExecutor(command)
+        getCommand("snake")!!.tabCompleter= command
 
         if(Bukkit.getScoreboardManager().mainScoreboard.getObjective("snakeLength")==null){
             Bukkit.getScoreboardManager().mainScoreboard.registerNewObjective("snakeLength","dummy","スネークの長さ")
