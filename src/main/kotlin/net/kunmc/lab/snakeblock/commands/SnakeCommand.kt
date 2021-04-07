@@ -31,8 +31,12 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor, TabCompleter {
                 /snake help:ヘルプを表示
                 /snake start:スネークブロックの処理を開始する
                 /snake stop:スネークブロックの処理を停止する
-                /snake game start:スネークブロックゲームを開始する
-                /snake game stop:スネークブロックゲームを終了する
+                /snake startgame:スネークゲームを開始する
+                /snake stopgame:スネークゲームを停止する
+                /snake setup [player] (高さ デフォルト:100) (平面方向しか動けないモードにするかどうか デフォルト:false) (長さ デフォルト:8):指定したプレイヤーにスネークブロックを設定する
+                /snake delete [player]:指定したプレイヤーのスネークブロックを削除する
+                /snake bgm [polka/mario]:曲の種類を切り替える
+                /snake adhd:スタートする前にプレイヤーが動けるかどうかを指定
                 """.trimIndent()
                 )
                 return true
