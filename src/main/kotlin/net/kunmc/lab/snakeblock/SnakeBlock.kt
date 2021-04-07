@@ -8,6 +8,7 @@ import com.xxmicloxx.NoteBlockAPI.utils.NBSDecoder
 import net.kunmc.lab.snakeblock.Main.Companion.plugin
 import org.bukkit.*
 import org.bukkit.block.Block
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer
 import org.bukkit.entity.ArmorStand
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
@@ -25,6 +26,7 @@ import java.io.File
 import org.bukkit.Bukkit.getScoreboardManager as sm
 
 class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: Boolean) : Listener {
+    var adhd: Boolean = true//adhd防止
     var blocks = mutableListOf<Block>()
 
     lateinit var front: ArmorStand
@@ -50,7 +52,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     fun addSize() {
         blocks.add(0, blocks[0].location.subtract(blocks[1].location.subtract(blocks[0].location)).block)
         blocks[0].type = Material.BEDROCK
-        size++
+        size=blocks.size;
         player.sendMessage("あなたのスネークブロックが1ブロック長くなりました。")
         sm().mainScoreboard.getObjective("snakeLength")!!.getScore(player).score=size
     }
@@ -64,6 +66,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
             blocks.add(0, loc.block)
             loc.subtract(player.facing.direction)
         }
+        direction=player.facing.direction
         list.add(this)
         partBr = object : BukkitRunnable() {
             override fun run() {
@@ -137,7 +140,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
                 }
                 if (otita) {
                     killMessage = "${player.name}はスネークブロックから転げ落ちた"
-                    player.health=0.0
+                    (player as CraftPlayer).handle.killEntity()
                 }
                 //にゅるにゅる処理
                 front.teleport(newBlock.location.add(0.5, 1.0, 0.5))
@@ -147,7 +150,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
                 //衝突判定
                 if (newBlock.type != Material.AIR) {
                     killMessage = "${player.name}は壁に衝突した。"
-                    player.health=0.0
+                    (player as CraftPlayer).handle.killEntity()
                 }
                 //進行処理
                 newBlock.type = Material.BARRIER
@@ -160,19 +163,25 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
         br.runTaskTimer(plugin, 0, period.toLong())
     }
 
+    var dead = false
     fun kill() {
         val newBlock = blocks[blocks.lastIndex]
         object : BukkitRunnable() {
             var tick = 0
             override fun run() {
-                if (tick < 20) {
-                    newBlock.world.spawnParticle(Particle.EXPLOSION_HUGE, newBlock.location, 10)
-                    newBlock.world.playSound(newBlock.location, Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f)
-                } else {
-                    player.health = 0.0
-                    stop()
-                    delete()
-                    cancel()
+                when {
+                    tick==0 -> {
+                        dead=true
+                    }
+                    tick < 20 -> {
+                        newBlock.world.spawnParticle(Particle.EXPLOSION_HUGE, newBlock.location, 10)
+                        newBlock.world.playSound(newBlock.location, Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f)
+                    }
+                    else -> {
+                        stop()
+                        delete()
+                        cancel()
+                    }
                 }
                 tick++
             }
@@ -232,10 +241,12 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     @EventHandler
     fun onDeath(e: PlayerDeathEvent) {
         if (e.entity == player) {
-            killMessage?.let {
-                e.deathMessage = it
+            if(!dead) {
+                killMessage?.let {
+                    e.deathMessage = it
+                }
+                kill()
             }
-            kill()
         }
     }
     @EventHandler
@@ -246,7 +257,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     }
     @EventHandler
     fun onMove(e:PlayerMoveEvent){
-        if(!rsp.isPlaying&&e.player==player){
+        if(!rsp.isPlaying&&e.player==player&&adhd){
             e.isCancelled=true
         }
     }

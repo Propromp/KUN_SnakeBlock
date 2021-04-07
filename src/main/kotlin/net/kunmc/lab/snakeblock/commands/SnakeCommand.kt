@@ -13,26 +13,28 @@ import org.bukkit.plugin.Plugin
 import sun.audio.AudioPlayer
 import sun.audio.AudioPlayer.player
 
-class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
+class SnakeCommand(private var plugin: Plugin) : CommandExecutor, TabCompleter {
     /**
      * スネークモードがスタートしているか
      */
     var isStarted = false
     var isGameStarted = false
-    lateinit var game : SnakeGame
+    lateinit var game: SnakeGame
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (args.isEmpty()) {
             sender.sendMessage("引数が足りません")
         }
         when (args[0]) {
             "help" -> {
-                sender.sendMessage("""
+                sender.sendMessage(
+                    """
                 /snake help:ヘルプを表示
                 /snake start:スネークブロックの処理を開始する
                 /snake stop:スネークブロックの処理を停止する
                 /snake game start:スネークブロックゲームを開始する
                 /snake game stop:スネークブロックゲームを終了する
-                """.trimIndent())
+                """.trimIndent()
+                )
                 return true
             }
             "start" -> {
@@ -48,7 +50,7 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                 }
             }
             "stop" -> {
-                if(isGameStarted){
+                if (isGameStarted) {
                     sender.sendMessage("/snake stopgameで停止してください")
                     return true
                 }
@@ -65,10 +67,10 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
             }
             "startgame" -> {
                 if (!isStarted) {
-                    game=SnakeGame().also{it.start()}
+                    game = SnakeGame().also { it.start() }
                     sender.sendMessage("スネークゲームを開始します。/snake stopgameで停止できます。")
                     isStarted = true
-                    isGameStarted=true
+                    isGameStarted = true
                     return true
                 } else {
                     sender.sendMessage("スネークモードはすでに開始されています。")
@@ -79,75 +81,79 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                     game.stop()
                     sender.sendMessage("スネークゲームを終了しました。")
                     isStarted = false
-                    isGameStarted=false
+                    isGameStarted = false
                     return true
                 } else {
                     sender.sendMessage("スネークモードはすでに停止されています")
                 }
             }
             "setup" -> {
-                if(args.size<2){
+                if (args.size < 2) {
                     sender.sendMessage("引数が足りません！")
                     return true
                 }
                 if (args[1].startsWith("@")) {
-                    Bukkit.selectEntities(sender, args[1]).forEach {
-                        if (it is Player) {
-                            val height = if(args.size>=3){
+                    Bukkit.selectEntities(sender, args[1]).forEach { entity ->
+                        if (entity is Player) {
+                            val height = if (args.size >= 3) {
                                 args[2].toInt()
                             } else {
                                 100
                             }
-                            val flat = if(args.size>=4){
+                            val flat = if (args.size >= 4) {
                                 args[3].toBoolean()
                             } else {
                                 false
                             }
-                            val size = if(args.size>=5){
+                            val size = if (args.size >= 5) {
                                 args[4].toInt()
                             } else {
                                 8
                             }
-                            SnakeBlock.list.filter{it.player==sender}.forEach { it.delete() }
-                            SnakeBlock(it,size,height, flat).place()
-                            sender.sendMessage("${it.name}にスネークブロックを設定しました")
+                            SnakeBlock.list.filter { it.player == entity }.forEach { it.delete() }
+                            SnakeBlock(entity, size, height, flat).place()
+                            sender.sendMessage("${entity.name}にスネークブロックを設定しました")
                         }
                     }
                     return true
                 }
-                Bukkit.getPlayer(args[1])?.let { player ->
-                    val height = if(args.size==3){
+                var player: Player? = null
+                if (Bukkit.getPlayer(args[1]) != null) {
+                    player = Bukkit.getPlayer(args[1])
+                }
+                player?.let { player ->
+                    val height = if (args.size == 3) {
                         args[2].toInt()
                     } else {
                         100
                     }
-                    val flat = if(args.size==4){
+                    val flat = if (args.size == 4) {
                         args[3].toBoolean()
                     } else {
                         false
                     }
-                    val size = if(args.size==5){
+                    val size = if (args.size == 5) {
                         args[4].toInt()
                     } else {
                         8
                     }
-                    SnakeBlock.list.filter{it.player==sender}.forEach { it.delete() }
-                    SnakeBlock(player,size,height, flat).place()
+                    SnakeBlock.list.filter { it.player == sender }.forEach { it.delete() }
+                    SnakeBlock(player, size, height, flat).place()
                     sender.sendMessage("${player.name}にスネークブロックを設定しました")
                     return true
                 }
                 sender.sendMessage("${args[1]}が表すプレイヤーは存在しません")
             }
             "delete" -> {
-                if(args.size<2){
+                if (args.size < 2) {
                     sender.sendMessage("引数が足りません！")
                     return true
                 }
                 if (args[1].startsWith("@")) {
                     Bukkit.selectEntities(sender, args[1]).forEach {
                         if (it is Player) {
-                            ArrayList(SnakeBlock.list).forEach {sb->
-                                if(sb.player==it){
+                            ArrayList(SnakeBlock.list).forEach { sb ->
+                                if (sb.player == it) {
                                     sb.delete()
                                     sender.sendMessage("${it.name}のスネークブロックを削除しました")
                                 }
@@ -157,8 +163,8 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                     return true
                 }
                 Bukkit.getPlayer(args[1])?.let { player ->
-                    ArrayList(SnakeBlock.list).forEach {sb->
-                        if(sb.player==player){
+                    ArrayList(SnakeBlock.list).forEach { sb ->
+                        if (sb.player == player) {
                             sb.delete()
                             sender.sendMessage("${AudioPlayer.player.name}のスネークブロックを削除しました")
                         }
@@ -166,14 +172,36 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
                     return true
                 }
             }
-            "hanken"->{
-                Main.hanken=args[1].toBoolean()
+            "bgm" -> {
+                if (args.size >= 2) {
+                    Main.hanken = when (args[1]) {
+                        "mario" -> true
+                        else -> false
+                    }
+                } else {
+                    sender.sendMessage("引数がたりません！")
+                    return true
+                }
             }
             "yaw" -> {
                 sender.sendMessage((sender as Player).location.yaw.toString())
             }
             "pitch" -> {
                 sender.sendMessage((sender as Player).location.pitch.toString())
+            }
+            "adhd" -> {
+                if (args.size >= 2) {
+                    val adhd = when (args[1]) {
+                        "動いておけ" -> false
+                        else -> true
+                    }
+                    SnakeBlock.list.forEach {
+                        it.adhd = adhd
+                    }
+                } else {
+                    sender.sendMessage("引数がたりません！")
+                    return true
+                }
             }
         }
         return true
@@ -185,35 +213,48 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor,TabCompleter {
         alias: String,
         args: Array<out String>
     ): List<String> {
-        return when(args.size){
-            1->{
-                listOf("help","start","stop","setup","delete","startgame","stopgame","hanken").filter{it.startsWith(args[0],true)}
+        return when (args.size) {
+            1 -> {
+                listOf(
+                    "help",
+                    "start",
+                    "stop",
+                    "setup",
+                    "delete",
+                    "startgame",
+                    "stopgame",
+                    "bgm",
+                    "adhd"
+                ).filter { it.startsWith(args[0], true) }
             }
-            2->{
+            2 -> {
                 var res = mutableListOf<String>()
-                when(args[0]) {
-                    "hanken"->{
-                        res= mutableListOf("true","false")
+                when (args[0]) {
+                    "bgm" -> {
+                        res = mutableListOf("mario", "polka")
                     }
-                    else-> {
+                    "adhd" -> {
+                        res = mutableListOf("動いておけ", "動いちゃだめ")
+                    }
+                    else -> {
                         res = mutableListOf("@a", "@p", "@r", "@s")
                         Bukkit.getOnlinePlayers().forEach {
                             res.add(it.name)
                         }
                     }
                 }
-                res.filter{it.startsWith(args[1],true)}
+                res.filter { it.startsWith(args[1], true) }
             }
-            3->{
+            3 -> {
                 listOf("[スネークブロックが生成される高さ(int)]")
             }
-            4->{
-                listOf("true","false").filter{it.startsWith(args[3],true)}
+            4 -> {
+                listOf("true", "false").filter { it.startsWith(args[3], true) }
             }
-            5->{
+            5 -> {
                 listOf("[スネークブロックの長さ(整数)]")
             }
-            else->{
+            else -> {
                 listOf()
             }
         }

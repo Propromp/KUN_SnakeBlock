@@ -27,15 +27,14 @@ class SnakeGame : Listener {
         override fun run() {
             if (SnakeBlock.list.size == 1) {//勝利処理
                 val sb = SnakeBlock.list[0]
+                sb.adhd=false
                 ArrayList(Bukkit.getOnlinePlayers()).also {
                     it.remove(sb.player)
                 }.forEach { player ->
-                    player.gameMode = GameMode.SPECTATOR
-                    player.teleport(sb.player.location)
                     player.sendTitle(Title("${ChatColor.GOLD}${sb.player.name}の勝利",
                         "生き延びた時間:${
-                            sm().mainScoreboard.getObjective("snakeTime")!!.getScore(sb.player).score
-                        } ブロック数:${sb.size}"))
+                            sm().mainScoreboard.getObjective("snakeTime")!!.getScore(sb.player).score/20
+                        }秒 ブロック数:${sb.size}"))
                 }
                 object : BukkitRunnable() {
                     var tick = 0

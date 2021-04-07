@@ -1,5 +1,5 @@
 name: SnakeBlock
-version: rc2
+version: rc5
 main: net.kunmc.lab.snakeblock.Main
 api-version: 1.15
 depend: [NoteBlockAPI]
