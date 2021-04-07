@@ -7,13 +7,37 @@ commands:
   snake:
     usage: "/snake help"
     description: "snakeBlockPlugin by Propromp"
-    permission: snake.op
 
 permissions:
-  snake.player:
-    default: true
-  snake.op:
+  snake.help:
+    default: op
+  snake.start:
+    default: op
+  snake.stop:
+    default: op
+  snake.startgame:
+    default: op
+  snake.stopgame:
+    default: op
+  snake.setup:
+    default: op
+  snake.delete:
+    default: op
+  snake.bgm:
+    default: op
+  snake.adhd:
+    default: op
+  snake.selector:
     default: op
   snake.*:
-    snake.player: true
-    snake.op: true
+    children:
+      - snake.help
+      - snake.start
+      - snake.stop
+      - snake.startgame
+      - snake.stopgame
+      - snake.setup
+      - snake.delete
+      - snake.bgm
+      - snake.adhd
+      - snake.selector
