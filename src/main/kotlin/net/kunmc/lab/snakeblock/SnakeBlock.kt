@@ -1,10 +1,5 @@
 package net.kunmc.lab.snakeblock
 
-import com.destroystokyo.paper.Title
-import com.xxmicloxx.NoteBlockAPI.model.RepeatMode
-import com.xxmicloxx.NoteBlockAPI.model.SoundCategory
-import com.xxmicloxx.NoteBlockAPI.songplayer.RadioSongPlayer
-import com.xxmicloxx.NoteBlockAPI.utils.NBSDecoder
 import net.kunmc.lab.snakeblock.Main.Companion.plugin
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -22,7 +17,6 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.util.Vector
-import java.io.File
 import org.bukkit.Bukkit.getScoreboardManager as sm
 
 class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: Boolean) : Listener {
@@ -31,7 +25,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
 
     lateinit var front: ArmorStand
     lateinit var rear: ArmorStand
-    private var rsp: RadioSongPlayer
+    private var rsp: Boolean = false
     private lateinit var br: BukkitRunnable
     private lateinit var partBr: BukkitRunnable
     private val period: Int = 10;
@@ -39,22 +33,15 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     private var killMessage: String? = null
 
     init {
-        var song = NBSDecoder.parse(File(plugin.dataFolder, "hankenok.nbs"))
-        if (Main.hanken) {
-            song = NBSDecoder.parse(File(plugin.dataFolder, "hankenng.nbs"))
-        }
-        rsp = RadioSongPlayer(song)
-        rsp.addPlayer(player)
-        rsp.category = SoundCategory.RECORDS
-        sm().mainScoreboard.getObjective("snakeLength")!!.getScore(player).score=size
+        sm().mainScoreboard.getObjective("snakeLength")!!.getScore(player).score = size
     }
 
     fun addSize() {
         blocks.add(0, blocks[0].location.subtract(blocks[1].location.subtract(blocks[0].location)).block)
         blocks[0].type = Material.BEDROCK
-        size=blocks.size;
+        size = blocks.size;
         player.sendMessage("あなたのスネークブロックが1ブロック長くなりました。")
-        sm().mainScoreboard.getObjective("snakeLength")!!.getScore(player).score=size
+        sm().mainScoreboard.getObjective("snakeLength")!!.getScore(player).score = size
     }
 
     fun place() {
@@ -66,14 +53,17 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
             blocks.add(0, loc.block)
             loc.subtract(player.facing.direction)
         }
-        direction=player.facing.direction
+        direction = player.facing.direction
         list.add(this)
         partBr = object : BukkitRunnable() {
             override fun run() {
                 for (i in 0..20) {
-                    player.world.spawnParticle(Particle.COMPOSTER, blocks[blocks.lastIndex].location.add(0.5,0.5,0.5).add(
-                        Vector.getRandom().normalize().rotateAroundY(Math.random().times(360))
-                            .rotateAroundZ(Math.random().times(360))), 1)
+                    player.world.spawnParticle(
+                        Particle.COMPOSTER, blocks[blocks.lastIndex].location.add(0.5, 0.5, 0.5).add(
+                            Vector.getRandom().normalize().rotateAroundY(Math.random().times(360))
+                                .rotateAroundZ(Math.random().times(360))
+                        ), 1
+                    )
                 }
             }
         }
@@ -94,16 +84,16 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     }
 
     fun start() {
-        sm().mainScoreboard.getObjective("snakeTime")!!.getScore(player).score=0
+        rsp = true
+        sm().mainScoreboard.getObjective("snakeTime")!!.getScore(player).score = 0
         player.sendMessage("コンパスを持ってクリックで進路を変更できます！")
         player.inventory.addItem(player.inventory.itemInMainHand)
         player.inventory.setItemInMainHand(ItemStack(Material.COMPASS))
-        //BGM
-        rsp.isPlaying = true
-        rsp.repeatMode = RepeatMode.ALL
         //frontとrearの設置
-        front = player.world.spawnEntity(blocks[blocks.lastIndex].location.add(0.5, 1.0, 0.5),
-            EntityType.ARMOR_STAND) as ArmorStand
+        front = player.world.spawnEntity(
+            blocks[blocks.lastIndex].location.add(0.5, 1.0, 0.5),
+            EntityType.ARMOR_STAND
+        ) as ArmorStand
         front.ticksLived = 1
         front.setGravity(false)
         front.isVisible = false
@@ -114,21 +104,21 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
         rear.isVisible = false
         rear.setItem(EquipmentSlot.HEAD, ItemStack(Material.BEDROCK))
         br = object : BukkitRunnable() {
-            var useVec=false
+            var useVec = false
             override fun run() {
                 //進行方向処理
-                if(useVec&&vector!=null){
-                    direction=vector!!
-                    useVec=false
-                    vector=null
+                if (useVec && vector != null) {
+                    direction = vector!!
+                    useVec = false
+                    vector = null
                 }
-                if(vector!=null){
-                    useVec=true
+                if (vector != null) {
+                    useVec = true
                 }
                 val newBlock = blocks[blocks.lastIndex].location.add(direction).block
                 val oldBlock = blocks[0]
                 //Scoreboard処理
-                sm().mainScoreboard.getObjective("snakeTime")!!.getScore(player).score+=period
+                sm().mainScoreboard.getObjective("snakeTime")!!.getScore(player).score += period
                 //コンパス処理
                 player.compassTarget = player.location.add(direction.clone().multiply(10))
                 //落ちた判定
@@ -170,8 +160,8 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
             var tick = 0
             override fun run() {
                 when {
-                    tick==0 -> {
-                        dead=true
+                    tick == 0 -> {
+                        dead = true
                     }
                     tick < 20 -> {
                         newBlock.world.spawnParticle(Particle.EXPLOSION_HUGE, newBlock.location, 10)
@@ -189,8 +179,8 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     }
 
     fun stop() {
-        if (rsp.isPlaying) {
-            rsp.isPlaying = false
+        if (rsp) {
+            rsp = false
             br.cancel()
             front.remove()
             rear.remove()
@@ -213,27 +203,31 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
         }
         return direction
     }
-    private var vector:Vector?=null
+
+    private var vector: Vector? = null
+
     @EventHandler
     fun onClick(e: PlayerInteractEvent) {
-        if (e.player.inventory.itemInMainHand.type == Material.COMPASS && e.player==player) {
-            vector=this.direction.clone()
+        if (e.player.inventory.itemInMainHand.type == Material.COMPASS && e.player == player) {
+            vector = this.direction.clone()
             direction = getPlayerDirection()
-            player.sendActionBar("進行方向を${
-                when (direction) {
-                    Vector(0, -1, 0) -> {
-                        vector=null
-                        "下"
+            player.sendActionBar(
+                "進行方向を${
+                    when (direction) {
+                        Vector(0, -1, 0) -> {
+                            vector = null
+                            "下"
+                        }
+                        Vector(0, 1, 0) -> {
+                            "上"
+                        }
+                        else -> {
+                            vector = null
+                            player.facing.name
+                        }
                     }
-                    Vector(0, 1, 0) -> {
-                        "上"
-                    }
-                    else -> {
-                        vector=null
-                        player.facing.name
-                    }
-                }
-            }に変更しました。")
+                }に変更しました。"
+            )
             player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
         }
     }
@@ -241,7 +235,7 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
     @EventHandler
     fun onDeath(e: PlayerDeathEvent) {
         if (e.entity == player) {
-            if(!dead) {
+            if (!dead) {
                 killMessage?.let {
                     e.deathMessage = it
                 }
@@ -249,16 +243,18 @@ class SnakeBlock(val player: Player, var size: Int, val height: Int, val flat: B
             }
         }
     }
+
     @EventHandler
-    fun onDrop(e:PlayerDropItemEvent){
-        if(e.itemDrop.itemStack.type==Material.COMPASS){
-            e.isCancelled=true
+    fun onDrop(e: PlayerDropItemEvent) {
+        if (e.itemDrop.itemStack.type == Material.COMPASS) {
+            e.isCancelled = true
         }
     }
+
     @EventHandler
-    fun onMove(e:PlayerMoveEvent){
-        if(!rsp.isPlaying&&e.player==player&&adhd){
-            e.isCancelled=true
+    fun onMove(e: PlayerMoveEvent) {
+        if (!rsp && e.player == player && adhd) {
+            e.isCancelled = true
         }
     }
 

@@ -217,36 +217,6 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor, TabCompleter {
                     sender.sendMessage("権限がありません。")
                 }
             }
-            "bgm" -> {
-                if (sender.hasPermission("snake.bgm")) {
-                    if (args.size >= 2) {
-                        Main.hanken = when (args[1]) {
-                            "mario" -> true
-                            else -> false
-                        }
-                        sender.sendMessage(
-                            "bgmを「${
-                                when (Main.hanken) {
-                                    true -> "マリオブラザース"
-                                    false -> "ポルカ"
-                                }
-                            }」に変更しました。"
-                        )
-                    } else {
-                        sender.sendMessage(
-                            "現在のbgmは「${
-                                when (Main.hanken) {
-                                    true -> "マリオブラザース"
-                                    false -> "ポルカ"
-                                }
-                            }」です。"
-                        )
-                        return true
-                    }
-                } else {
-                    sender.sendMessage("権限がありません。")
-                }
-            }
             "yaw" -> {
                 sender.sendMessage((sender as Player).location.yaw.toString())
             }
@@ -280,7 +250,7 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor, TabCompleter {
                 }
             }
             else -> {
-                sender.sendMessage("そのコマンドは存在しません。")
+                return false
             }
         }
         return true
@@ -302,27 +272,27 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor, TabCompleter {
                     "delete",
                     "startgame",
                     "stopgame",
-                    "bgm",
                     "adhd"
                 ).filter { sender.hasPermission("snake.$it") }.filter { it.startsWith(args[0], true) }
             }
             2 -> {
-                var res: MutableList<String>
                 when (args[0]) {
                     "bgm" -> {
-                        res = mutableListOf()
+                        var res = mutableListOf<String>()
                         if (sender.hasPermission("snake.bgm")) {
                             res.addAll(arrayOf("mario", "polka"))
                         }
+                        res
                     }
                     "adhd" -> {
-                        res = mutableListOf()
+                        var res = mutableListOf<String>()
                         if (sender.hasPermission("snake.adhd")) {
                             res = mutableListOf("動いておけ", "動いちゃだめ")
                         }
+                        res
                     }
-                    else -> {
-                        res = mutableListOf()
+                    "setup","delete" -> {
+                        val res = mutableListOf<String>()
                         if (sender.hasPermission("snake.selector")) {
                             res.addAll(arrayOf("@a", "@p", "@r", "@s"))
                         }
@@ -331,9 +301,10 @@ class SnakeCommand(private var plugin: Plugin) : CommandExecutor, TabCompleter {
                                 res.add(it.name)
                             }
                         }
+                        res
                     }
-                }
-                res.filter { it.startsWith(args[1], true) }
+                    else -> listOf<String>()
+                }.filter { it.startsWith(args[1], true) }
             }
             3 -> {
                 if (args[0] == "setup" && sender.hasPermission("snake.setup")) {

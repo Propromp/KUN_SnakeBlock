@@ -2,7 +2,6 @@ name: SnakeBlock
 version: @version@
 main: net.kunmc.lab.snakeblock.Main
 api-version: 1.15
-depend: [NoteBlockAPI]
 commands:
   snake:
     usage: "/snake help"
@@ -22,8 +21,6 @@ permissions:
   snake.setup:
     default: op
   snake.delete:
-    default: op
-  snake.bgm:
     default: op
   snake.adhd:
     default: op
